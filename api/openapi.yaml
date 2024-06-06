@@ -1,0 +1,320 @@
+openapi: "3.0.0"
+info:
+  description: shop
+  title: shop API
+  license:
+    name: "Apache 2.0"
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.0
+
+servers:
+  - url: "/api/"
+    description: Shop server endpoint
+
+components:
+  responses:
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    ServerError:
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    NotFound:
+      description: Resource Not Found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    Conflict:
+      description: Resource Conflicts With Target
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    CredentialsError:
+      description: Wrong user name or password
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    OrderIsUploadedByAnotherUser:
+      description: The number of order iss already created by another user
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    OrderAlreadyExist:
+      description: number of this order is already exists
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ResponseInfo"
+    OrderCreated:
+      description: order created and in process
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ResponseInfo"
+    NoData:
+      description: there is no data for user
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ResponseInfo"
+    NoMoneyNoHoney:
+      description: No money no honey, boy
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ResponseInfo"
+
+  schemas:
+    Balance:
+      type: object
+      properties:
+        current:
+          description: current state
+          type: number
+        withdrawn:
+          description: withdrawn
+          type: number
+    Withdraw:
+      type: object
+      required:
+        - order
+        - sum
+      properties:
+        order:
+          description: number of order
+          type: string
+        sum:
+          description: sum of points to withdraw
+          type: number
+    Order:
+      type: object
+      properties:
+        number:
+          description: number of order
+          type: string
+        status:
+          description: status of order
+          type: string
+        accrual:
+          description: accrual for order
+          type: integer
+        uploaded_at:
+          description: date of order creation
+          type: string
+    Error:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          description: short message explaining the error
+          type: string
+    ResponseInfo:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          description: response info
+          type: string
+    User:
+      type: object
+      properties:
+        name:
+          type: string
+          description: a unique identifier for the user.
+        password:
+          type: string
+          description: very secret word.
+      required:
+        - name
+        - password
+
+
+
+
+
+paths:
+  /user/register:
+    post:
+      tags:
+        - auth
+      operationId: createUser
+      summary: create user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/User"
+      responses:
+        201:
+          description: user
+        400:
+          description: validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        409:
+          $ref: "#/components/responses/Conflict"
+        500:
+          $ref: "#/components/responses/ServerError"
+
+  /user/login:
+    post:
+      tags:
+        - auth
+      operationId: AuthorizeUser
+      summary: user authorization
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/User"
+      responses:
+        200:
+          description: user authorized
+        400:
+          description: validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        401:
+          $ref: "#/components/responses/CredentialsError"
+        500:
+          $ref: "#/components/responses/ServerError"
+
+  /user/orders:
+    post:
+      tags:
+        - order
+      operationId: UploadOrder
+      summary: upload user order
+      requestBody:
+        content:
+          text/plain:
+            schema:
+              type: string
+      responses:
+        200:
+          $ref: "#/components/responses/OrderAlreadyExist"
+        202:
+          $ref: "#/components/responses/OrderCreated"
+        400:
+          $ref: "#/components/responses/Conflict"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        409:
+          $ref: "#/components/responses/OrderIsUploadedByAnotherUser"
+        422:
+          $ref: "#/components/responses/Conflict"
+        500:
+          $ref: "#/components/responses/ServerError"
+
+    get:
+      tags:
+        - order
+      operationId: OrderList
+      summary: user orders
+      responses:
+        200:
+          description: user orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Order"
+        204:
+          $ref: "#/components/responses/NoData"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        500:
+          $ref: "#/components/responses/ServerError"
+
+
+
+  /user/balance:
+    get:
+      tags:
+       - balance
+      operationId: GetBalance
+      summary: Info about total accrual of points
+      responses:
+        200:
+          description: Info on accrual of points
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Balance"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        500:
+          $ref: "#/components/responses/ServerError"
+
+  /user/balance/withdraw:
+    post:
+      tags:
+      - balance
+      operationId: Withdraw balance
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Withdraw"
+      responses:
+        200:
+          description: status of operation
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        402:
+          $ref: "#/components/responses/NoMoneyNoHoney"
+        422:
+          $ref: "#/components/responses/Conflict"
+        500:
+          $ref: "#/components/responses/ServerError"
+
+  /orders/{number}:
+    get:
+      tags:
+      - balance
+      summary: Get a order by number
+      parameters:
+        - in: path
+          name: number
+          schema:
+            type: string
+          required: true
+          description: Number of order
+      responses:
+        200:
+          description: Info on accrual of points
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/Order"
+        204:
+          $ref: "#/components/responses/NoData"
+        409:
+          description: exceeded request limit
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        500:
+          $ref: "#/components/responses/ServerError"
+
+
+

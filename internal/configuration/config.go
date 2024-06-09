@@ -35,7 +35,7 @@ func New() *Config {
 	flag.StringVar(&networkCfg.ServerAddress, "a", "localhost:8080", "address and port to run server")
 	flag.StringVar(&networkCfg.SysLocation, "r", "http://localhost:8080", "system location address")
 	flag.StringVar(&loggerCfg.Level, "l", "info", "logger level")
-	flag.StringVar(&storageCfg.ConnString, "d", "", "file to store data")
+	flag.StringVar(&storageCfg.ConnString, "d", "", "database storage")
 
 	flag.Parse()
 	if serverAddress := os.Getenv("RUN_ADDRESS"); serverAddress != "" {
@@ -51,12 +51,12 @@ func New() *Config {
 	if filaStoragePath := os.Getenv("FILE_STORAGE_PATH"); filaStoragePath != "" {
 		storageCfg.FileStoragePath = filaStoragePath
 	}
-	if connString := os.Getenv("RUN_ADDRESS"); connString != "" {
-		storageCfg.ConnString = connString
-	}
-	if connString := os.Getenv("RUN_ADDRESS"); connString != "" {
-		storageCfg.ConnString = connString
-	}
+	//if connString := os.Getenv("RUN_ADDRESS"); connString != "" {
+	//	storageCfg.ConnString = connString
+	//}
+	//if connString := os.Getenv("RUN_ADDRESS"); connString != "" {
+	//	storageCfg.ConnString = connString
+	//}
 	return &Config{
 		Network: &networkCfg,
 		Logger:  &loggerCfg,

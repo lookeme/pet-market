@@ -3,11 +3,16 @@ package repository
 import (
 	"context"
 	"pet-market/api"
-	"pet-market/internal/repository/db"
 )
 
 type UsrRepositoryImpl struct {
-	pg db.Postgres
+	pg *Postgres
+}
+
+func NewUsrRepository(pg *Postgres) *UsrRepositoryImpl {
+	return &UsrRepositoryImpl{
+		pg,
+	}
 }
 
 func (r *UsrRepositoryImpl) Save(userName string, password string) (int, error) {

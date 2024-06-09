@@ -2,13 +2,10 @@
 -- +goose StatementBegin
 SELECT 'up SQL query';
 -- +goose StatementEnd
-CREATE TABLE withdrawal (
-  id SERIAL,
-  order text NOT NULL,
-  sum  numeric NOT NULL,
-  processed_at timestamp default NOW(),
-  user_id int,
-  PRIMARY KEY(id)
+CREATE TABLE balance (
+    current  numeric NOT NULL default 0,
+    withdrawn numeric NOT NULL default 0,
+    user_id int
 );
 -- +goose Down
 -- +goose StatementBegin

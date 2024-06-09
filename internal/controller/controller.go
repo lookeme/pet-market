@@ -2,12 +2,15 @@ package controller
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"pet-market/api"
 	"pet-market/internal/logger"
 	"pet-market/internal/security"
 	"pet-market/internal/service"
+
+	"github.com/jackc/pgx/v5"
 )
 
 const bearer = "Bearer "
@@ -20,8 +23,11 @@ type Controller struct {
 	log            logger.Logger
 }
 
-func NewController() *Controller {
-	return &Controller{}
+func NewController(auth security.Authorization, usrService service.UserService) *Controller {
+	return &Controller{
+		Authorization: auth,
+		UserService:   usrService,
+	}
 }
 func (s *Controller) GetOrdersNumber(w http.ResponseWriter, r *http.Request, number string) {
 	w.WriteHeader(http.StatusNotImplemented)
@@ -41,14 +47,15 @@ func (s *Controller) AuthorizeUser(w http.ResponseWriter, r *http.Request) {
 	if err := json.Unmarshal(body, &user); err != nil {
 		s.writeResponse(w, r, http.StatusBadRequest, err)
 	}
-	usr, err := s.UserService.GetUserByName(user.Name)
-	if err != nil {
-		s.writeResponse(w, r, http.StatusInternalServerError, err)
+	usr, queryErr := s.UserService.GetUserByName(user.Login)
+	if errors.Is(queryErr, pgx.ErrNoRows) {
+		s.writeResponse(w, r, http.StatusUnauthorized, errors.New("user is not registered"))
+		return
 	}
 	if s.Authorization.VerifyPassword(user.Password, usr.Password) {
-		s.writeToken(w, r, usr.Name)
+		s.writeToken(w, r, usr.Login)
 	} else {
-		s.writeResponse(w, r, http.StatusUnauthorized, err)
+		s.writeResponse(w, r, http.StatusUnauthorized, errors.New("wrong password"))
 	}
 }
 
@@ -65,19 +72,19 @@ func (s *Controller) CreateUser(w http.ResponseWriter, r *http.Request) {
 	if err := json.Unmarshal(body, &user); err != nil {
 		s.writeResponse(w, r, http.StatusBadRequest, err)
 	}
-	usr, err := s.UserService.GetUserByName(user.Name)
-	if err != nil {
-		s.writeResponse(w, r, http.StatusInternalServerError, err)
-	}
-	if usr != nil {
-		s.writeResponse(w, r, http.StatusConflict, err)
-	} else {
-		err = s.UserService.CreateUser(user)
+	usr, queryErr := s.UserService.GetUserByName(user.Login)
+	if errors.Is(queryErr, pgx.ErrNoRows) {
+		err := s.UserService.CreateUser(user)
 		if err != nil {
 			s.writeResponse(w, r, http.StatusInternalServerError, err)
 		} else {
-			s.writeToken(w, r, usr.Name)
+			s.writeToken(w, r, usr.Login)
 		}
+	} else {
+		s.writeResponse(w, r, http.StatusInternalServerError, queryErr)
+	}
+	if usr.Login != "" {
+		s.writeResponse(w, r, http.StatusConflict, errors.New("user already exists"))
 	}
 }
 

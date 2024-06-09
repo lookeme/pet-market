@@ -1,10 +1,10 @@
-package db
+package repository
 
 import (
 	"context"
 	"pet-market/internal/configuration"
 	"pet-market/internal/logger"
-	"pet-market/internal/repository"
+	"pet-market/internal/repository/db"
 	"sync"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -22,17 +22,17 @@ type Postgres struct {
 }
 
 type Storage struct {
-	UserRepository        repository.UserRepository
-	OrderRepository       repository.OrderRepository
-	BalanceRepository     repository.BalanceRepository
-	WithdrawalsRepository repository.WithdrawalsRepository
+	UserRepository        UserRepository
+	OrderRepository       OrderRepository
+	BalanceRepository     BalanceRepository
+	WithdrawalsRepository WithdrawalsRepository
 }
 
 func NewStorage(
-	userRepo repository.UserRepository,
-	orderRepository repository.OrderRepository,
-	balanceRepository repository.BalanceRepository,
-	withdrawalsRepository repository.WithdrawalsRepository,
+	userRepo UserRepository,
+	orderRepository OrderRepository,
+	balanceRepository BalanceRepository,
+	withdrawalsRepository WithdrawalsRepository,
 
 ) *Storage {
 	return &Storage{
@@ -61,7 +61,7 @@ func New(ctx context.Context, log *logger.Logger, cfg *configuration.Storage) (*
 		}
 		pgInstance = &Postgres{db, log}
 	})
-	err := StartMigration(pgInstance.СonPool)
+	err := db.StartMigration(pgInstance.СonPool)
 	if err != nil {
 		return nil, err
 	}

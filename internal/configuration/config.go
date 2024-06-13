@@ -17,9 +17,9 @@ type LoggerCfg struct {
 	Output string `yaml:"output"`
 }
 type NetworkCfg struct {
-	ServerAddress string `yaml:"address"`
-	BaseURL       string `yaml:"base-url"`
-	SysLocation   string `yaml:"system-location"`
+	ServerAddress  string `yaml:"address"`
+	BaseURL        string `yaml:"base-url"`
+	AccuralAddress string `yaml:"accural-address"`
 }
 
 type Storage struct {
@@ -33,7 +33,7 @@ func New() *Config {
 	loggerCfg := LoggerCfg{}
 	storageCfg := Storage{}
 	flag.StringVar(&networkCfg.ServerAddress, "a", "localhost:8080", "address and port to run server")
-	flag.StringVar(&networkCfg.SysLocation, "r", "http://localhost:8080", "system location address")
+	flag.StringVar(&networkCfg.AccuralAddress, "r", "http://localhost:8081", "system location address")
 	flag.StringVar(&loggerCfg.Level, "l", "info", "logger level")
 	flag.StringVar(&storageCfg.ConnString, "d", "", "database storage")
 
@@ -48,15 +48,9 @@ func New() *Config {
 		loggerCfg.Level = loggerLevel
 	}
 
-	if filaStoragePath := os.Getenv("FILE_STORAGE_PATH"); filaStoragePath != "" {
-		storageCfg.FileStoragePath = filaStoragePath
+	if accuralAddressStr := os.Getenv("ACCRUAL_SYSTEM_ADDRESS"); accuralAddressStr != "" {
+		networkCfg.AccuralAddress = accuralAddressStr
 	}
-	//if connString := os.Getenv("RUN_ADDRESS"); connString != "" {
-	//	storageCfg.ConnString = connString
-	//}
-	//if connString := os.Getenv("RUN_ADDRESS"); connString != "" {
-	//	storageCfg.ConnString = connString
-	//}
 	return &Config{
 		Network: &networkCfg,
 		Logger:  &loggerCfg,

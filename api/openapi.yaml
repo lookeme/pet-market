@@ -7,10 +7,6 @@ info:
     url: https://www.apache.org/licenses/LICENSE-2.0.html
   version: 1.0.0
 
-servers:
-  - url: "/api/"
-    description: Shop server endpoint
-
 components:
   responses:
     Unauthorized:
@@ -77,6 +73,9 @@ components:
   schemas:
     Balance:
       type: object
+      required:
+        - current
+        - withdrawn
       properties:
         current:
           description: current state
@@ -84,7 +83,7 @@ components:
         withdrawn:
           description: withdrawn
           type: number
-    Withdraw:
+    RequestWithdraw:
       type: object
       required:
         - order
@@ -96,8 +95,29 @@ components:
         sum:
           description: sum of points to withdraw
           type: number
-    Order:
+    ResponseWithdraw:
       type: object
+      required:
+        - order
+        - sum
+        - processed_at
+      properties:
+        order:
+          description: number of order
+          type: string
+        sum:
+          description: sum of points to withdraw
+          type: number
+        processed_at:
+          description: time of start processing
+          type: string
+    OrderResponse:
+      type: object
+      required:
+        - number
+        - status
+        - accrual
+        - uploaded_at
       properties:
         number:
           description: number of order
@@ -136,17 +156,21 @@ components:
         password:
           type: string
           description: very secret word.
+        id:
+          type: integer
+          readOnly: true
       required:
         - login
         - password
-
-
-
-
-
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
 paths:
-  /user/register:
+  /api/user/register:
     post:
+      security: [] # No authentication
       tags:
         - auth
       operationId: createUser
@@ -170,8 +194,9 @@ paths:
         500:
           $ref: "#/components/responses/ServerError"
 
-  /user/login:
+  /api/user/login:
     post:
+      security: [] # No authentication
       tags:
         - auth
       operationId: AuthorizeUser
@@ -195,8 +220,10 @@ paths:
         500:
           $ref: "#/components/responses/ServerError"
 
-  /user/orders:
+  /api/user/orders:
     post:
+      security:
+        - bearerAuth: []
       tags:
         - order
       operationId: UploadOrder
@@ -221,8 +248,9 @@ paths:
           $ref: "#/components/responses/Conflict"
         500:
           $ref: "#/components/responses/ServerError"
-
     get:
+      security:
+        - bearerAuth: []
       tags:
         - order
       operationId: OrderList
@@ -235,18 +263,17 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/Order"
+                  $ref: "#/components/schemas/OrderResponse"
         204:
           $ref: "#/components/responses/NoData"
         401:
           $ref: "#/components/responses/Unauthorized"
         500:
           $ref: "#/components/responses/ServerError"
-
-
-
-  /user/balance:
+  /api/user/balance:
     get:
+      security:
+        - bearerAuth: []
       tags:
        - balance
       operationId: GetBalance
@@ -263,8 +290,10 @@ paths:
         500:
           $ref: "#/components/responses/ServerError"
 
-  /user/balance/withdraw:
+  /api/user/balance/withdraw:
     post:
+      security:
+        - bearerAuth: []
       tags:
       - balance
       operationId: Withdraw balance
@@ -272,7 +301,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/Withdraw"
+              $ref: "#/components/schemas/RequestWithdraw"
       responses:
         200:
           description: status of operation
@@ -285,36 +314,26 @@ paths:
         500:
           $ref: "#/components/responses/ServerError"
 
-  /orders/{number}:
+  /api/user/withdrawals:
     get:
+      security:
+        - bearerAuth: []
       tags:
-      - balance
-      summary: Get a order by number
-      parameters:
-        - in: path
-          name: number
-          schema:
-            type: string
-          required: true
-          description: Number of order
+        - balance
+      operationId: WithdrawalsList
+      summary: user withdrawals
       responses:
         200:
-          description: Info on accrual of points
+          description: user withdrawals
           content:
             application/json:
               schema:
+                type: array
                 items:
-                  $ref: "#/components/schemas/Order"
+                  $ref: "#/components/schemas/ResponseWithdraw"
         204:
           $ref: "#/components/responses/NoData"
-        409:
-          description: exceeded request limit
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
+        401:
+          $ref: "#/components/responses/Unauthorized"
         500:
           $ref: "#/components/responses/ServerError"
-
-
-

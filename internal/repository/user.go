@@ -15,20 +15,20 @@ func NewUsrRepository(pg *Postgres) *UsrRepositoryImpl {
 	}
 }
 
-func (r *UsrRepositoryImpl) Save(userName string, password string) (int, error) {
-	lastInsertID := 0
+func (r *UsrRepositoryImpl) Save(ctx context.Context, login string, password string) (int, error) {
+	userID := 0
 	err := r.pg.СonPool.QueryRow(
-		context.Background(),
-		"INSERT INTO users(login, pass) VALUES($1, $2) RETURNING id", userName, password).Scan(&lastInsertID)
+		ctx,
+		"INSERT INTO users(login, pass) VALUES($1, $2) RETURNING id", login, password).Scan(&userID)
 	if err != nil {
-		return lastInsertID, err
+		return userID, err
 	}
-	return lastInsertID, nil
+	return userID, nil
 }
-func (r *UsrRepositoryImpl) GetUserByName(userName string) (api.User, error) {
+func (r *UsrRepositoryImpl) GetUserByLogin(ctx context.Context, login string) (api.User, error) {
 	var usr api.User
-	sqlStatement := `SELECT (login, pass) FROM users WHERE login = $1`
-	err := r.pg.СonPool.QueryRow(context.Background(), sqlStatement, userName).Scan(&usr)
+	sqlStatement := `SELECT (id, login, pass) FROM users WHERE login = $1`
+	err := r.pg.СonPool.QueryRow(ctx, sqlStatement, login).Scan(&usr)
 	if err != nil {
 		return api.User{}, err
 	}

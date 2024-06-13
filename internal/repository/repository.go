@@ -1,23 +1,27 @@
 package repository
 
-import "pet-market/api"
+import (
+	"context"
+	"pet-market/api"
+	"pet-market/internal/models"
+)
 
 type UserRepository interface {
-	Save(userName string, password string) (int, error)
-	GetUserByName(userName string) (api.User, error)
+	Save(ctx context.Context, login string, password string) (int, error)
+	GetUserByLogin(ctx context.Context, login string) (api.User, error)
 }
 
 type OrderRepository interface {
-	Save(orderNum string, userId int) error
-	GetAll(userId string) ([]api.Order, error)
+	Save(ctx context.Context, order models.Order, userID int) error
+	GetAll(ctx context.Context, userID int) ([]models.Order, error)
+	GetByOrderNumber(ctx context.Context, orderNum string) (models.Order, error)
 }
 
 type BalanceRepository interface {
-	Save(orderNum string, userId int)
-	GetBalance(userId int) (api.Balance, error)
+	GetBalance(ctx context.Context, userID int) (api.Balance, error)
 }
 
 type WithdrawalsRepository interface {
-	Save(orderNum string, userId int, sum int) error
-	GetAllByUserId(userId int) ([]api.Withdraw, error)
+	Save(ctx context.Context, orderNum string, sum float32, userID int) error
+	GetAllByUserID(ctx context.Context, userID int) ([]models.Withdraw, error)
 }

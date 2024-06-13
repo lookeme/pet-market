@@ -8,11 +8,13 @@ import (
 	"pet-market/api"
 	"pet-market/internal/configuration"
 	"pet-market/internal/controller"
+	"pet-market/internal/integration"
 	"pet-market/internal/logger"
 	"pet-market/internal/repository"
 	"pet-market/internal/security"
 	"pet-market/internal/service"
 
+	"github.com/getkin/kin-openapi/openapi3filter"
 	"github.com/go-chi/chi/v5"
 	middleware "github.com/oapi-codegen/nethttp-middleware"
 )
@@ -37,11 +39,26 @@ func main() {
 	swagger.Servers = nil
 	auth := security.New(log)
 	usrRepository := repository.NewUsrRepository(postgres)
+	orderRepo := repository.NewOrderRepository(postgres)
+	balanceRepo := repository.NewBalanceRepository(postgres)
+	withdrawRepo := repository.NewWithdrawRepository(postgres)
+	accural := integration.New(cfg.Network.AccuralAddress)
+	orderService := service.NewOrderService(accural, orderRepo)
 	usrService := service.NewUserService(usrRepository, auth, log)
-	httpServer := controller.NewController(*auth, usrService)
+	balanceService := service.NewBalanceService(balanceRepo, withdrawRepo)
+
+	httpServer := controller.NewController(
+		auth,
+		usrService,
+		orderService,
+		balanceService,
+		log)
 	r := chi.NewRouter()
-	r.Use(middleware.OapiRequestValidator(swagger))
-	r.Use(log.Middleware)
+	r.Use(middleware.OapiRequestValidatorWithOptions(swagger, &middleware.Options{
+		Options: openapi3filter.Options{
+			AuthenticationFunc: openapi3filter.NoopAuthenticationFunc,
+		},
+	}))
 	api.HandlerFromMux(httpServer, r)
 	s := &http.Server{
 		Handler: r,

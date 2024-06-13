@@ -1,21 +1,23 @@
 package service
 
 import (
+	"context"
 	"pet-market/api"
 )
 
 type UserService interface {
-	CreateUser(user api.User) error
-	GetUserByName(userName string) (*api.User, error)
+	CreateUser(ctx context.Context, user api.User) error
+	GetUserByName(ctx context.Context, login string) (*api.User, error)
 }
 
 type OrderService interface {
-	CreateOrder(orderNum string, userName string) error
-	GetUserOrders(userName string) ([]api.Order, error)
+	CreateOrder(ctx context.Context, orderNum string, userID int) error
+	GetUserOrders(ctx context.Context, userID int) ([]api.OrderResponse, error)
+	GetOrder(ctx context.Context, orderNum string) (api.OrderResponse, error)
 }
 
 type BalanceService interface {
-	GetBalance(userName string) (api.Balance, error)
-	AddWithdraw(userName string, sum int) error
-	GetAllWithdraw(userName string) ([]api.Withdraw, error)
+	GetBalance(ctx context.Context, userID int) (api.Balance, error)
+	AddWithdraw(ctx context.Context, userID int, withdraw api.RequestWithdraw) error
+	GetAllWithdraws(ctx context.Context, userID int) ([]api.ResponseWithdraw, error)
 }

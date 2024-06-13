@@ -17,15 +17,16 @@ type Authorization struct {
 }
 
 const SecretKey = "secret-key"
-const TokenExp = time.Hour * 3
+const TokenExp = time.Hour * 1
 
 type Claims struct {
 	jwt.RegisteredClaims
-	Login string
+	Login  string
+	UserID int
 }
 
-func New(logger *logger.Logger) *Authorization {
-	return &Authorization{
+func New(logger *logger.Logger) Authorization {
+	return Authorization{
 		Log: logger,
 	}
 }
@@ -45,12 +46,24 @@ func (auth *Authorization) AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(fn)
 }
 
-func (auth *Authorization) BuildJWTString(login string) (string, error) {
+func (auth *Authorization) Authorize(_ http.ResponseWriter, r *http.Request) bool {
+	token := r.Header.Get("Authorization")
+	token, err := GetToken(token)
+	if err != nil || !auth.verifyToken(token) {
+		return false
+
+	} else {
+		return true
+	}
+}
+
+func (auth *Authorization) BuildJWTString(login string, userID int) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, Claims{
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(TokenExp)),
 		},
-		Login: login,
+		Login:  login,
+		UserID: userID,
 	})
 	tokenString, err := token.SignedString([]byte(SecretKey))
 	if err != nil {
@@ -65,6 +78,13 @@ func GetLogin(tokenString string) string {
 		return []byte(SecretKey), nil
 	})
 	return claims.Login
+}
+func GetUserID(tokenString string) int {
+	var claims Claims
+	jwt.ParseWithClaims(tokenString, &claims, func(t *jwt.Token) (interface{}, error) {
+		return []byte(SecretKey), nil
+	})
+	return claims.UserID
 }
 
 func (auth *Authorization) verifyToken(tokenString string) bool {

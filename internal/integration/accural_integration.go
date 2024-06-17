@@ -58,12 +58,12 @@ func (a *AccuralIntegration) GetOrder(orderNumber string, timeout time.Duration)
 	a.log.Log.Info("return order",
 		zap.String("order", order.Order),
 		zap.String("status", order.Status),
-		zap.Int("accural", order.Accrual))
+		zap.Float32("accural", order.Accrual))
 	return &order, nil
 }
 
 type OrderAccural struct {
-	Order   string `json:"order"`
-	Status  string `json:"status"`
-	Accrual int    `json:"accrual"`
+	Order   string  `json:"order"`
+	Status  string  `json:"status"`
+	Accrual float32 `json:"accrual"`
 }

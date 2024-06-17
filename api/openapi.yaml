@@ -127,7 +127,7 @@ components:
           type: string
         accrual:
           description: accrual for order
-          type: integer
+          type: number
         uploaded_at:
           description: date of order creation
           type: string

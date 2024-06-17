@@ -53,26 +53,18 @@ func TestShop(t *testing.T) {
 		Status:  "PROCESS",
 		UserID:  1,
 	}
-
+	ID := 1
 	defer mockCtrl.Finish()
 	userRepoMock := mocks.NewMockUserRepository(mockCtrl)
 	userRepoMock.EXPECT().Save(context.Background(), "login", "qwerty").Return(1, nil).AnyTimes()
 	userRepoMock.EXPECT().GetUserByLogin(context.Background(), "login").Return(api.User{
-		Id:       1,
+		Id:       &ID,
 		Login:    "login",
 		Password: hash,
 	}, nil).AnyTimes()
 	userRepoMock.EXPECT().GetUserByLogin(context.Background(), "user").Return(api.User{}, pgx.ErrNoRows).AnyTimes()
 
 	orderRepoMock := mocks.NewMockOrderRepository(mockCtrl)
-	//orderRepoMock.EXPECT().GetByOrderNumber(context.Background(), "12345678903").Return(
-	//	models.Order{
-	//		OrderID:    "12345678903",
-	//		Accrual:    200,
-	//		Status:     "PROCESSED",
-	//		UploadedAt: time.Now(),
-	//		UserID:     1,
-	//	}, nil).AnyTimes()
 
 	orderRepoMock.EXPECT().GetByOrderNumber(context.Background(), "12345678903").Return(
 		models.Order{}, pgx.ErrNoRows).AnyTimes()
@@ -152,7 +144,7 @@ func TestShop(t *testing.T) {
 	userService := service.NewUserService(userRepoMock, auth, &zlog)
 	balanceService := service.NewBalanceService(balanceRepoMock, withdrawnRepoMock)
 	orderService := service.NewOrderService(&accural, orderRepoMock)
-	controller := controller.NewController(
+	ctr := controller.NewController(
 		auth,
 		userService,
 		orderService,
@@ -166,7 +158,7 @@ func TestShop(t *testing.T) {
 		rctx := chi.NewRouteContext()
 		req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
 		w := httptest.NewRecorder()
-		controller.GetBalance(w, req)
+		ctr.GetBalance(w, req)
 		res := w.Result()
 		assert.Equal(t, http.StatusOK, res.StatusCode)
 		body, readErr := io.ReadAll(res.Body)
@@ -185,7 +177,7 @@ func TestShop(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/api/user/orders", nil)
 		req.Header.Set("Authorization", "Bearer "+token)
 		w := httptest.NewRecorder()
-		controller.OrderList(w, req)
+		ctr.OrderList(w, req)
 		res := w.Result()
 		assert.Equal(t, http.StatusOK, res.StatusCode)
 		body, readErr := io.ReadAll(res.Body)
@@ -205,7 +197,7 @@ func TestShop(t *testing.T) {
 		rctx := chi.NewRouteContext()
 		req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
 		w := httptest.NewRecorder()
-		controller.WithdrawalsList(w, req)
+		ctr.WithdrawalsList(w, req)
 		res := w.Result()
 		assert.Equal(t, http.StatusOK, res.StatusCode)
 		body, readErr := io.ReadAll(res.Body)
@@ -220,7 +212,7 @@ func TestShop(t *testing.T) {
 
 	t.Run("create user test #4", func(t *testing.T) {
 		user := api.User{
-			Id:       1,
+			Id:       &ID,
 			Login:    "login",
 			Password: "qwerty",
 		}
@@ -228,7 +220,7 @@ func TestShop(t *testing.T) {
 		require.NoError(t, err)
 		req := httptest.NewRequest(http.MethodPost, "/api/user/login", bytes.NewBuffer(jsonData))
 		w := httptest.NewRecorder()
-		controller.AuthorizeUser(w, req)
+		ctr.AuthorizeUser(w, req)
 		res := w.Result()
 		res.Body.Close()
 		assert.Equal(t, http.StatusOK, res.StatusCode)
@@ -245,7 +237,7 @@ func TestShop(t *testing.T) {
 		rctx := chi.NewRouteContext()
 		req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
 		w := httptest.NewRecorder()
-		controller.UploadOrder(w, req)
+		ctr.UploadOrder(w, req)
 		res := w.Result()
 		res.Body.Close()
 		assert.Equal(t, http.StatusAccepted, res.StatusCode)

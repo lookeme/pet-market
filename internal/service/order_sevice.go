@@ -31,7 +31,7 @@ func (i *OrderServiceIml) CreateOrder(ctx context.Context, orderNum string, user
 	}
 	existedOrder, errPg := i.orderRepo.GetByOrderNumber(ctx, orderNum)
 	if errors.Is(errPg, pgx.ErrNoRows) {
-		order, getError := i.accural.GetOrder(orderNum, time.Millisecond*4)
+		order, getError := i.accural.GetOrder(orderNum, time.Second*5)
 		if getError != nil {
 			return getError
 		}

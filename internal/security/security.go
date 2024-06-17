@@ -72,18 +72,14 @@ func (auth *Authorization) BuildJWTString(login string, userID int) (string, err
 	return tokenString, nil
 }
 
-func GetLogin(tokenString string) string {
-	var claims Claims
-	jwt.ParseWithClaims(tokenString, &claims, func(t *jwt.Token) (interface{}, error) {
-		return []byte(SecretKey), nil
-	})
-	return claims.Login
-}
 func GetUserID(tokenString string) int {
 	var claims Claims
-	jwt.ParseWithClaims(tokenString, &claims, func(t *jwt.Token) (interface{}, error) {
+	_, withClaims := jwt.ParseWithClaims(tokenString, &claims, func(t *jwt.Token) (interface{}, error) {
 		return []byte(SecretKey), nil
 	})
+	if withClaims != nil {
+		return 0
+	}
 	return claims.UserID
 }
 
@@ -109,12 +105,12 @@ func GetToken(str string) (string, error) {
 	return tokens[1], nil
 }
 
-func (auth *Authorization) HashPassword(password string) (string, error) {
+func HashPassword(password string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
 	return string(bytes), err
 }
 
-func (auth *Authorization) VerifyPassword(password, hash string) bool {
+func VerifyPassword(password, hash string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 	return err == nil
 }

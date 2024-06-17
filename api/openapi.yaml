@@ -158,8 +158,8 @@ components:
           description: very secret word.
         id:
           type: integer
-          readOnly: true
       required:
+        - id
         - login
         - password
   securitySchemes:

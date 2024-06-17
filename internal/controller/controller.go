@@ -108,8 +108,8 @@ func (s *Controller) AuthorizeUser(w http.ResponseWriter, r *http.Request) {
 		s.writeResponse(w, r, http.StatusUnauthorized, errors.New("user is not registered"))
 		return
 	}
-	if s.Authorization.VerifyPassword(user.Password, usr.Password) {
-		s.writeToken(w, r, usr.Login, *usr.Id)
+	if security.VerifyPassword(user.Password, usr.Password) {
+		s.writeToken(w, r, usr.Login, usr.Id)
 	} else {
 		s.writeResponse(w, r, http.StatusUnauthorized, errors.New("wrong password"))
 	}
@@ -184,7 +184,7 @@ func (s *Controller) CreateUser(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			s.writeResponse(w, r, http.StatusInternalServerError, err)
 		} else {
-			s.writeToken(w, r, usr.Login, *usr.Id)
+			s.writeToken(w, r, usr.Login, usr.Id)
 		}
 	}
 	if queryErr != nil {

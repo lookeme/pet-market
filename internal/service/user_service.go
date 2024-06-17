@@ -25,7 +25,7 @@ func NewUserService(userRepository repository.UserRepository, auth security.Auth
 }
 
 func (s *UsrService) CreateUser(ctx context.Context, usr api.User) error {
-	hash, err := s.auth.HashPassword(usr.Password)
+	hash, err := security.HashPassword(usr.Password)
 	if err != nil {
 		return err
 	}

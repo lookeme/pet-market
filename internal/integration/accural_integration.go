@@ -12,14 +12,14 @@ var url = "/api/orders/"
 
 type AccuralIntegration struct {
 	host   string
-	client *http.Client
+	Client *http.Client
 	log    logger.Logger
 }
 
 func New(host string) *AccuralIntegration {
 	return &AccuralIntegration{
 		host:   host,
-		client: &http.Client{},
+		Client: &http.Client{},
 	}
 }
 
@@ -29,7 +29,7 @@ func (a *AccuralIntegration) GetOrder(orderNumber string, timeout time.Duration)
 	if err != nil {
 		return nil, err
 	}
-	res, getErr := a.client.Do(req)
+	res, getErr := a.Client.Do(req)
 	if getErr != nil {
 		return nil, getErr
 	}

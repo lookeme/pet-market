@@ -46,12 +46,12 @@ func (h *HTTPServer) Start() {
 	orderRepo := repository.NewOrderRepository(postgres)
 	balanceRepo := repository.NewBalanceRepository(postgres)
 	withdrawRepo := repository.NewWithdrawRepository(postgres)
-	accural := integration.New(h.config.Network.AccuralAddress)
+	accural := integration.New(h.config.Network.AccuralAddress, log)
 	orderService := service.NewOrderService(accural, orderRepo)
 	usrService := service.NewUserService(usrRepository, auth, log)
 	balanceService := service.NewBalanceService(balanceRepo, withdrawRepo)
 
-	controller := controller.NewController(
+	ctr := controller.NewController(
 		auth,
 		usrService,
 		orderService,
@@ -69,7 +69,7 @@ func (h *HTTPServer) Start() {
 			AuthenticationFunc: openapi3filter.NoopAuthenticationFunc,
 		},
 	}))
-	api.HandlerFromMux(controller, r)
+	api.HandlerFromMux(ctr, r)
 	s := &http.Server{
 		Handler: r,
 		Addr:    h.config.Network.ServerAddress,

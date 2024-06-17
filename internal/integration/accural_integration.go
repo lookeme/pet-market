@@ -18,10 +18,11 @@ type AccuralIntegration struct {
 	log    logger.Logger
 }
 
-func New(host string) *AccuralIntegration {
+func New(host string, log *logger.Logger) *AccuralIntegration {
 	return &AccuralIntegration{
 		host:   host,
 		Client: &http.Client{},
+		log:    *log,
 	}
 }
 

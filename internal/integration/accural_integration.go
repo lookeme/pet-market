@@ -34,7 +34,7 @@ func (a *AccuralIntegration) GetOrder(orderNumber string, timeout time.Duration)
 	}
 	res, getErr := a.Client.Do(req)
 	if getErr != nil {
-		a.log.Log.Error(err.Error())
+		a.log.Log.Error(getErr.Error())
 		return nil, getErr
 	}
 

@@ -49,8 +49,10 @@ func (a *AccuralIntegration) GetOrder(orderNumber string, timeout time.Duration)
 		return nil, readErr
 	}
 	order := OrderAccural{}
+	a.log.Log.Info("accural response", zap.String("body", string(body)))
 	jsonErr := json.Unmarshal(body, &order)
 	if jsonErr != nil {
+		a.log.Log.Error(jsonErr.Error())
 		return nil, jsonErr
 	}
 	a.log.Log.Info("return order",

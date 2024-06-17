@@ -1,6 +1,6 @@
 module pet-market
 
-go 1.22.2
+go 1.21.6
 
 require (
 	github.com/getkin/kin-openapi v0.124.0

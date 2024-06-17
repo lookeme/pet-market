@@ -79,32 +79,32 @@ func TestShop(t *testing.T) {
 
 	orderRepoMock.EXPECT().GetAll(context.Background(), 1).Return([]models.Order{
 		{
-			"12345678903",
-			200,
-			"PROCESSED",
-			time.Now(),
-			1,
+			OrderID:    "12345678903",
+			Accrual:    200,
+			Status:     "PROCESSED",
+			UploadedAt: time.Now(),
+			UserID:     1,
 		},
 		{
-			"12345678904",
-			200,
-			"PROCESSED",
-			time.Now(),
-			1,
+			OrderID:    "12345678904",
+			Accrual:    200,
+			Status:     "PROCESSED",
+			UploadedAt: time.Now(),
+			UserID:     1,
 		},
 		{
-			"12345678905",
-			200,
-			"PROCESSED",
-			time.Now(),
-			1,
+			OrderID:    "12345678904",
+			Accrual:    200,
+			Status:     "PROCESSED",
+			UploadedAt: time.Now(),
+			UserID:     1,
 		},
 		{
-			"12345678906",
-			200,
-			"PROCESSED",
-			time.Now(),
-			1,
+			OrderID:    "12345678906",
+			Accrual:    200,
+			Status:     "PROCESSED",
+			UploadedAt: time.Now(),
+			UserID:     1,
 		},
 	}, nil).AnyTimes()
 
@@ -118,23 +118,23 @@ func TestShop(t *testing.T) {
 	withdrawnRepoMock := mocks.NewMockWithdrawalsRepository(mockCtrl)
 	withdrawnRepoMock.EXPECT().GetAllByUserID(context.Background(), 1).Return([]models.Withdraw{
 		{
-			"12345678903",
-			time.Now(),
-			20,
-			1,
+			OrderNum:    "12345678903",
+			ProcessedAt: time.Now(),
+			Sum:         20,
+			UserID:      1,
 		},
 		{
-			"12345678904",
-			time.Now(),
-			20,
-			1,
+			OrderNum:    "12345678904",
+			ProcessedAt: time.Now(),
+			Sum:         20,
+			UserID:      1,
 		},
 
 		{
-			"12345678905",
-			time.Now(),
-			20,
-			1,
+			OrderNum:    "12345678905",
+			ProcessedAt: time.Now(),
+			Sum:         20,
+			UserID:      1,
 		},
 	}, nil).AnyTimes()
 
@@ -230,9 +230,11 @@ func TestShop(t *testing.T) {
 		w := httptest.NewRecorder()
 		controller.AuthorizeUser(w, req)
 		res := w.Result()
+		res.Body.Close()
 		assert.Equal(t, http.StatusOK, res.StatusCode)
 		token := res.Header.Get("Authorization")
 		token, tokenErr := security.GetToken(token)
+		assert.True(t, len(token) > 0)
 		require.NoError(t, tokenErr)
 	})
 
@@ -245,6 +247,7 @@ func TestShop(t *testing.T) {
 		w := httptest.NewRecorder()
 		controller.UploadOrder(w, req)
 		res := w.Result()
+		res.Body.Close()
 		assert.Equal(t, http.StatusAccepted, res.StatusCode)
 	})
 

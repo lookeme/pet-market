@@ -17,19 +17,20 @@ import (
 	"github.com/getkin/kin-openapi/openapi3filter"
 	"github.com/go-chi/chi/v5"
 	middleware "github.com/oapi-codegen/nethttp-middleware"
+	"go.uber.org/zap"
 )
 
-type HttpServer struct {
+type HTTPServer struct {
 	config *configuration.Config
 }
 
-func NewHttpServer(config *configuration.Config) *HttpServer {
-	return &HttpServer{
+func NewHTTPServer(config *configuration.Config) *HTTPServer {
+	return &HTTPServer{
 		config: config,
 	}
 }
 
-func (h *HttpServer) Start() {
+func (h *HTTPServer) Start() {
 	ctx := context.Background()
 	log, err := logger.CreateLogger(h.config.Logger)
 	if err != nil {
@@ -73,5 +74,6 @@ func (h *HttpServer) Start() {
 		Handler: r,
 		Addr:    h.config.Network.ServerAddress,
 	}
+	log.Log.Info("server started on ", zap.String("host", s.Addr))
 	log.Log.Fatal(s.ListenAndServe().Error())
 }

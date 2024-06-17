@@ -7,6 +7,6 @@ import (
 
 func main() {
 	cfg := configuration.New()
-	s := server.NewHttpServer(cfg)
+	s := server.NewHTTPServer(cfg)
 	s.Start()
 }

@@ -162,15 +162,14 @@ components:
         - id
         - login
         - password
-  securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
+#  securitySchemes:
+#    bearerAuth:
+#      type: http
+#      scheme: bearer
+#      bearerFormat: JWT
 paths:
   /api/user/register:
     post:
-      security: [] # No authentication
       tags:
         - auth
       operationId: createUser
@@ -196,7 +195,6 @@ paths:
 
   /api/user/login:
     post:
-      security: [] # No authentication
       tags:
         - auth
       operationId: AuthorizeUser
@@ -222,8 +220,6 @@ paths:
 
   /api/user/orders:
     post:
-      security:
-        - bearerAuth: []
       tags:
         - order
       operationId: UploadOrder
@@ -249,8 +245,6 @@ paths:
         500:
           $ref: "#/components/responses/ServerError"
     get:
-      security:
-        - bearerAuth: []
       tags:
         - order
       operationId: OrderList
@@ -272,8 +266,6 @@ paths:
           $ref: "#/components/responses/ServerError"
   /api/user/balance:
     get:
-      security:
-        - bearerAuth: []
       tags:
        - balance
       operationId: GetBalance
@@ -292,8 +284,6 @@ paths:
 
   /api/user/balance/withdraw:
     post:
-      security:
-        - bearerAuth: []
       tags:
       - balance
       operationId: Withdraw balance
@@ -316,8 +306,6 @@ paths:
 
   /api/user/withdrawals:
     get:
-      security:
-        - bearerAuth: []
       tags:
         - balance
       operationId: WithdrawalsList

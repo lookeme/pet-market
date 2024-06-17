@@ -161,11 +161,6 @@ components:
       required:
         - login
         - password
-#  securitySchemes:
-#    bearerAuth:
-#      type: http
-#      scheme: bearer
-#      bearerFormat: JWT
 paths:
   /api/user/register:
     post:

@@ -49,13 +49,13 @@ func (s *Controller) GetBalance(w http.ResponseWriter, r *http.Request) {
 	token := r.Header.Get("Authorization")
 	token, tokenErr := security.GetToken(token)
 	if tokenErr != nil {
-		s.writeResponse(w, r, http.StatusInternalServerError, tokenErr)
+		s.writeResponse(w, r, http.StatusInternalServerError, nil)
 	}
 	ctx := context.Background()
 	userID := security.GetUserID(token)
 	balance, err := s.BalanceService.GetBalance(ctx, userID)
 	if err != nil {
-		s.writeResponse(w, r, http.StatusInternalServerError, err)
+		s.writeResponse(w, r, http.StatusInternalServerError, nil)
 	} else {
 		s.writeResponse(w, r, http.StatusOK, balance)
 	}
@@ -84,13 +84,13 @@ func (s *Controller) WithdrawBalance(w http.ResponseWriter, r *http.Request) {
 	userID := security.GetUserID(token)
 	err := s.BalanceService.AddWithdraw(ctx, userID, withdraw)
 	if err == nil {
-		s.writeResponse(w, r, http.StatusOK, err)
+		s.writeResponse(w, r, http.StatusOK, nil)
 	} else if errors.Is(err, utils.ErrInvalidOrderNum) {
-		s.writeResponse(w, r, http.StatusUnprocessableEntity, err)
+		s.writeResponse(w, r, http.StatusUnprocessableEntity, nil)
 	} else if errors.Is(err, utils.ErrInsufficientFunds) {
-		s.writeResponse(w, r, http.StatusPaymentRequired, err)
+		s.writeResponse(w, r, http.StatusPaymentRequired, nil)
 	} else {
-		s.writeResponse(w, r, http.StatusInternalServerError, err)
+		s.writeResponse(w, r, http.StatusInternalServerError, nil)
 	}
 
 }
@@ -123,16 +123,16 @@ func (s *Controller) OrderList(w http.ResponseWriter, r *http.Request) {
 	token := r.Header.Get("Authorization")
 	token, tokenErr := security.GetToken(token)
 	if tokenErr != nil {
-		s.writeResponse(w, r, http.StatusInternalServerError, tokenErr)
+		s.writeResponse(w, r, http.StatusInternalServerError, nil)
 	}
 	ctx := context.Background()
 	userID := security.GetUserID(token)
 	orders, err := s.OrderService.GetUserOrders(ctx, userID)
 
 	if err != nil {
-		s.writeResponse(w, r, http.StatusInternalServerError, err)
+		s.writeResponse(w, r, http.StatusInternalServerError, nil)
 	} else if len(orders) == 0 {
-		s.writeResponse(w, r, http.StatusNoContent, orders)
+		s.writeResponse(w, r, http.StatusNoContent, nil)
 	} else {
 		s.writeResponse(w, r, http.StatusOK, orders)
 	}
@@ -147,27 +147,27 @@ func (s *Controller) UploadOrder(w http.ResponseWriter, r *http.Request) {
 	b, bodyErr := io.ReadAll(r.Body)
 	defer r.Body.Close()
 	if bodyErr != nil {
-		s.writeResponse(w, r, http.StatusBadRequest, bodyErr)
+		s.writeResponse(w, r, http.StatusBadRequest, nil)
 	}
 	orderNum := string(b)
 	token := r.Header.Get("Authorization")
 	token, tokenErr := security.GetToken(token)
 	if tokenErr != nil {
-		s.writeResponse(w, r, http.StatusInternalServerError, tokenErr)
+		s.writeResponse(w, r, http.StatusInternalServerError, nil)
 	}
 	userID := security.GetUserID(token)
 	ordErr := s.OrderService.CreateOrder(ctx, orderNum, userID)
 	if errors.Is(ordErr, utils.ErrInvalidOrderNum) {
-		s.writeResponse(w, r, http.StatusUnprocessableEntity, tokenErr)
+		s.writeResponse(w, r, http.StatusUnprocessableEntity, nil)
 	} else if errors.Is(ordErr, utils.ErrOrderNumAttachedToAnotherUser) {
 		s.writeResponse(w, r, http.StatusConflict, tokenErr)
 	} else if errors.Is(ordErr, utils.ErrOrderNumIsAlreadyRegistered) {
-		s.writeResponse(w, r, http.StatusOK, tokenErr)
+		s.writeResponse(w, r, http.StatusOK, nil)
 	}
 	if ordErr == nil {
 		s.writeResponse(w, r, http.StatusAccepted, nil)
 	} else {
-		s.writeResponse(w, r, http.StatusInternalServerError, ordErr)
+		s.writeResponse(w, r, http.StatusInternalServerError, nil)
 	}
 }
 func (s *Controller) CreateUser(w http.ResponseWriter, r *http.Request) {
@@ -175,14 +175,14 @@ func (s *Controller) CreateUser(w http.ResponseWriter, r *http.Request) {
 	body, _ := io.ReadAll(r.Body)
 	defer r.Body.Close()
 	if err := json.Unmarshal(body, &user); err != nil {
-		s.writeResponse(w, r, http.StatusBadRequest, err)
+		s.writeResponse(w, r, http.StatusBadRequest, nil)
 	}
 	ctx := context.Background()
 	usr, queryErr := s.UserService.GetUserByName(ctx, user.Login)
 	if errors.Is(queryErr, pgx.ErrNoRows) {
 		ID, err := s.UserService.CreateUser(ctx, user)
 		if err != nil {
-			s.writeResponse(w, r, http.StatusInternalServerError, err)
+			s.writeResponse(w, r, http.StatusInternalServerError, nil)
 		} else {
 			s.writeToken(w, r, usr.Login, ID)
 		}
@@ -204,12 +204,12 @@ func (s *Controller) WithdrawalsList(w http.ResponseWriter, r *http.Request) {
 	token := r.Header.Get("Authorization")
 	token, tokenErr := security.GetToken(token)
 	if tokenErr != nil {
-		s.writeResponse(w, r, http.StatusInternalServerError, tokenErr)
+		s.writeResponse(w, r, http.StatusInternalServerError, nil)
 	}
 	userID := security.GetUserID(token)
 	withdrawals, err := s.BalanceService.GetAllWithdraws(ctx, userID)
 	if err != nil {
-		s.writeResponse(w, r, http.StatusInternalServerError, err)
+		s.writeResponse(w, r, http.StatusInternalServerError, nil)
 	}
 	if len(withdrawals) == 0 {
 		s.writeResponse(w, r, http.StatusNoContent, nil)
@@ -221,11 +221,11 @@ func (s *Controller) WithdrawalsList(w http.ResponseWriter, r *http.Request) {
 func (s *Controller) writeToken(w http.ResponseWriter, r *http.Request, userName string, userID int) {
 	token, err := s.Authorization.BuildJWTString(userName, userID)
 	if err != nil {
-		s.writeResponse(w, r, http.StatusInternalServerError, err)
+		s.writeResponse(w, r, http.StatusInternalServerError, nil)
 		return
 	}
 	w.Header().Set("Authorization", bearer+token)
-	s.writeResponse(w, r, http.StatusOK, err)
+	s.writeResponse(w, r, http.StatusOK, nil)
 }
 func (s *Controller) writeResponse(w http.ResponseWriter, _ *http.Request, code int, response interface{}) {
 	w.Header().Set("Content-Type", "application/json")

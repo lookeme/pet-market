@@ -159,7 +159,6 @@ components:
         id:
           type: integer
       required:
-        - id
         - login
         - password
 #  securitySchemes:

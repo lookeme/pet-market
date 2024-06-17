@@ -18,7 +18,6 @@ type LoggerCfg struct {
 }
 type NetworkCfg struct {
 	ServerAddress  string `yaml:"address"`
-	BaseURL        string `yaml:"base-url"`
 	AccuralAddress string `yaml:"accural-address"`
 }
 
@@ -41,8 +40,8 @@ func New() *Config {
 	if serverAddress := os.Getenv("RUN_ADDRESS"); serverAddress != "" {
 		networkCfg.ServerAddress = serverAddress
 	}
-	if baseURL := os.Getenv("BASE_URL"); baseURL != "" {
-		networkCfg.BaseURL = baseURL
+	if ConnString := os.Getenv("DATABASE_URI"); ConnString != "" {
+		storageCfg.ConnString = ConnString
 	}
 	if loggerLevel := os.Getenv("LOG_LEVEL"); loggerLevel != "" {
 		loggerCfg.Level = loggerLevel

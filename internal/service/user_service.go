@@ -24,17 +24,17 @@ func NewUserService(userRepository repository.UserRepository, auth security.Auth
 	}
 }
 
-func (s *UsrService) CreateUser(ctx context.Context, usr api.User) error {
+func (s *UsrService) CreateUser(ctx context.Context, usr api.User) (int, error) {
 	hash, err := security.HashPassword(usr.Password)
 	if err != nil {
-		return err
+		return 0, err
 	}
-	_, err = s.userRepository.Save(ctx, usr.Login, hash)
+	ID, err := s.userRepository.Save(ctx, usr.Login, hash)
 	s.Log.Log.Info("user created", zap.String("login ", usr.Login))
 	if err != nil {
-		return err
+		return 0, err
 	}
-	return nil
+	return ID, nil
 }
 
 func (s *UsrService) GetUserByName(ctx context.Context, userName string) (*api.User, error) {

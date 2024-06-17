@@ -6,7 +6,7 @@ import (
 )
 
 type UserService interface {
-	CreateUser(ctx context.Context, user api.User) error
+	CreateUser(ctx context.Context, user api.User) (int, error)
 	GetUserByName(ctx context.Context, login string) (*api.User, error)
 }
 

@@ -45,7 +45,7 @@ func (w *WithdrawRepositoryImpl) Save(ctx context.Context, orderNum string, sum 
 		return err
 	}
 	var balance api.Balance
-	sqlStatement := "SELECT current, withdrawn FROM (SELECT SUM(accrual) as current, user_id FROM orders WHERE user_id = $1 group by user_id) T1 INNER JOIN (SELECT SUM(sum) as withdrawn, user_id FROM withdrawals WHERE user_id = $1 group by user_id) T2 ON T1.user_id=T2.user_id;"
+	sqlStatement := "SELECT Coalesce(current, 0) as current,  Coalesce(withdrawn, 0) as withdrawn FROM (SELECT SUM(accrual) as current, user_id FROM orders WHERE user_id = $1 group by user_id) T1 LEFT JOIN (SELECT SUM(sum) as withdrawn, user_id FROM withdrawals WHERE user_id = $1 group by user_id) T2 ON T1.user_id = T2.user_id;"
 	err = tx.QueryRow(ctx, sqlStatement, userID).Scan(&balance.Current, &balance.Withdrawn)
 	if err != nil {
 		return err

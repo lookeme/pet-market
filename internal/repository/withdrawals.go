@@ -50,7 +50,7 @@ func (w *WithdrawRepositoryImpl) Save(ctx context.Context, orderNum string, sum 
 	if err != nil {
 		return err
 	}
-	if balance.Current-sum < 0 {
+	if balance.Current-(sum+balance.Withdrawn) < 0 {
 		return utils.ErrInsufficientFunds
 	}
 	_, err = tx.Exec(ctx, "INSERT INTO withdrawals (order_num, sum, user_id) VALUES ($1, $2, $3 )", orderNum, sum, userID)

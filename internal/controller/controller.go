@@ -13,6 +13,7 @@ import (
 	"pet-market/internal/utils"
 
 	"github.com/jackc/pgx/v5"
+	"go.uber.org/zap"
 )
 
 const bearer = "Bearer "
@@ -83,14 +84,21 @@ func (s *Controller) WithdrawBalance(w http.ResponseWriter, r *http.Request) {
 		s.writeResponse(w, r, http.StatusBadRequest, err)
 	}
 	userID := security.GetUserID(token)
+	s.log.Log.Info("withdrawal",
+		zap.String("order", withdraw.Order),
+		zap.Float32("sum", withdraw.Sum),
+	)
 	err := s.BalanceService.AddWithdraw(ctx, userID, withdraw)
 	if err == nil {
 		s.writeResponse(w, r, http.StatusOK, nil)
 	} else if errors.Is(err, utils.ErrInvalidOrderNum) {
+		s.log.Log.Error(err.Error())
 		s.writeResponse(w, r, http.StatusUnprocessableEntity, nil)
 	} else if errors.Is(err, utils.ErrInsufficientFunds) {
+		s.log.Log.Error(err.Error())
 		s.writeResponse(w, r, http.StatusPaymentRequired, nil)
 	} else {
+		s.log.Log.Error(err.Error())
 		s.writeResponse(w, r, http.StatusInternalServerError, nil)
 	}
 

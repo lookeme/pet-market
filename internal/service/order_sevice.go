@@ -44,7 +44,7 @@ func (i *OrderServiceIml) CreateOrder(ctx context.Context, orderNum string, user
 			orderToSave.Accrual = order.Accrual
 		}
 		return i.orderRepo.Save(ctx, orderToSave, userID)
-	} else if existedOrder.UserID == userID {
+	} else if existedOrder.UserID != userID {
 		return utils.ErrOrderNumAttachedToAnotherUser
 	} else {
 		return utils.ErrOrderNumIsAlreadyRegistered

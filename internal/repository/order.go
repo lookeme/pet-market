@@ -39,7 +39,7 @@ func (r *OrderRepositoryImpl) GetAll(ctx context.Context, userID int) ([]models.
 
 func (r *OrderRepositoryImpl) GetByOrderNumber(ctx context.Context, orderNum string) (models.Order, error) {
 	var order models.Order
-	sqlStatement := `SELECT * FROM orders WHERE order_id = $1`
-	err := r.pg.СonPool.QueryRow(ctx, sqlStatement, orderNum).Scan(&order)
+	sqlStatement := `SELECT order_id, accrual, status, uploaded_at,  user_id  FROM orders WHERE order_id = $1`
+	err := r.pg.СonPool.QueryRow(ctx, sqlStatement, orderNum).Scan(&order.OrderID, &order.Accrual, &order.Status, &order.UploadedAt, &order.UserID)
 	return order, err
 }

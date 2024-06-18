@@ -160,7 +160,7 @@ func (s *Controller) UploadOrder(w http.ResponseWriter, r *http.Request) {
 	if errors.Is(ordErr, utils.ErrInvalidOrderNum) {
 		s.writeResponse(w, r, http.StatusUnprocessableEntity, nil)
 	} else if errors.Is(ordErr, utils.ErrOrderNumAttachedToAnotherUser) {
-		s.writeResponse(w, r, http.StatusConflict, tokenErr)
+		s.writeResponse(w, r, http.StatusConflict, nil)
 	} else if errors.Is(ordErr, utils.ErrOrderNumIsAlreadyRegistered) {
 		s.writeResponse(w, r, http.StatusOK, nil)
 	}

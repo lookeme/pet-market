@@ -33,6 +33,7 @@ const (
 	withdrawnBalance = float32(60)
 )
 
+func Pointer(val float32) *float32 { return &val }
 func TestShop(t *testing.T) {
 	log, _ := zap.NewDevelopment()
 	zlog := logger.Logger{
@@ -42,13 +43,13 @@ func TestShop(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 
 	orderAccural := integration.OrderAccural{
-		Accrual: 200,
+		Accrual: Pointer(200),
 		Order:   "12345678903",
 		Status:  "PROCESS",
 	}
 
 	order := models.Order{
-		Accrual: 200,
+		Accrual: Pointer(200),
 		OrderID: "12345678903",
 		Status:  "PROCESS",
 		UserID:  1,
@@ -72,28 +73,27 @@ func TestShop(t *testing.T) {
 	orderRepoMock.EXPECT().GetAll(context.Background(), 1).Return([]models.Order{
 		{
 			OrderID:    "12345678903",
-			Accrual:    200,
+			Status:     "INVALID",
+			UploadedAt: time.Now(),
+			UserID:     1,
+		},
+		{
+			OrderID:    "12345678904",
+			Accrual:    Pointer(200),
 			Status:     "PROCESSED",
 			UploadedAt: time.Now(),
 			UserID:     1,
 		},
 		{
 			OrderID:    "12345678904",
-			Accrual:    200,
-			Status:     "PROCESSED",
-			UploadedAt: time.Now(),
-			UserID:     1,
-		},
-		{
-			OrderID:    "12345678904",
-			Accrual:    200,
+			Accrual:    Pointer(200),
 			Status:     "PROCESSED",
 			UploadedAt: time.Now(),
 			UserID:     1,
 		},
 		{
 			OrderID:    "12345678906",
-			Accrual:    200,
+			Accrual:    Pointer(200),
 			Status:     "PROCESSED",
 			UploadedAt: time.Now(),
 			UserID:     1,
@@ -140,6 +140,7 @@ func TestShop(t *testing.T) {
 	})
 	accural := integration.AccuralIntegration{
 		Client: client,
+		Log:    zlog,
 	}
 	userService := service.NewUserService(userRepoMock, auth, &zlog)
 	balanceService := service.NewBalanceService(balanceRepoMock, withdrawnRepoMock)

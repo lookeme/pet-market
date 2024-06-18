@@ -22,7 +22,12 @@ func NewBalanceService(balanceRepo repository.BalanceRepository,
 }
 
 func (b *BalanceServiceIml) GetBalance(ctx context.Context, userID int) (api.Balance, error) {
-	return b.balanceRepo.GetBalance(ctx, userID)
+	balance, err := b.balanceRepo.GetBalance(ctx, userID)
+	if err != nil {
+		return api.Balance{}, err
+	}
+	balance.Current = balance.Current - balance.Withdrawn
+	return balance, nil
 }
 
 func (b *BalanceServiceIml) AddWithdraw(ctx context.Context, userID int, withdraw api.RequestWithdraw) error {

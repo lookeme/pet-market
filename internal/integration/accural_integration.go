@@ -18,31 +18,37 @@ type AccuralIntegration struct {
 	log    logger.Logger
 }
 
-func New(host string, log *logger.Logger) *AccuralIntegration {
+func New(host string, log *logger.Logger, timeout time.Duration) *AccuralIntegration {
 	return &AccuralIntegration{
-		host:   host,
-		Client: &http.Client{},
-		log:    *log,
+		host: host,
+		Client: &http.Client{
+			Timeout: timeout,
+		},
+		log: *log,
 	}
 }
 
-func (a *AccuralIntegration) GetOrder(orderNumber string, timeout time.Duration) (*OrderAccural, error) {
-	a.log.Log.Info("create request to accural...")
+func (a *AccuralIntegration) GetOrder(orderNumber string) (*OrderAccural, error) {
+	a.log.Log.Info("create request to accural.", zap.String("orderNum", orderNumber))
 	req, err := http.NewRequest(http.MethodGet, a.host+url+orderNumber, nil)
 	if err != nil {
 		a.log.Log.Error(err.Error())
 		return nil, err
 	}
 	res, getErr := a.Client.Do(req)
+
 	if getErr != nil {
 		a.log.Log.Error(getErr.Error())
 		return nil, getErr
 	}
 
+	a.log.Log.Info("response status",
+		zap.String("status", res.Status),
+		zap.Int("status", res.StatusCode),
+	)
 	if res.Body != nil {
 		defer res.Body.Close()
 	}
-
 	body, readErr := io.ReadAll(res.Body)
 	if readErr != nil {
 		a.log.Log.Error(readErr.Error())

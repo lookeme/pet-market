@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"pet-market/api"
+	"pet-market/internal/compression"
 	"pet-market/internal/configuration"
 	"pet-market/internal/controller"
 	"pet-market/internal/integration"
@@ -13,6 +14,7 @@ import (
 	"pet-market/internal/repository"
 	"pet-market/internal/security"
 	"pet-market/internal/service"
+	"time"
 
 	"github.com/getkin/kin-openapi/openapi3filter"
 	"github.com/go-chi/chi/v5"
@@ -46,7 +48,7 @@ func (h *HTTPServer) Start() {
 	orderRepo := repository.NewOrderRepository(postgres)
 	balanceRepo := repository.NewBalanceRepository(postgres)
 	withdrawRepo := repository.NewWithdrawRepository(postgres)
-	accural := integration.New(h.config.Network.AccuralAddress, log)
+	accural := integration.New(h.config.Network.AccuralAddress, log, time.Second*10)
 	orderService := service.NewOrderService(accural, orderRepo)
 	usrService := service.NewUserService(usrRepository, auth, log)
 	balanceService := service.NewBalanceService(balanceRepo, withdrawRepo)
@@ -69,6 +71,7 @@ func (h *HTTPServer) Start() {
 			AuthenticationFunc: openapi3filter.NoopAuthenticationFunc,
 		},
 	}))
+	r.Use(compression.GzipMiddleware)
 	api.HandlerFromMux(ctr, r)
 	s := &http.Server{
 		Handler: r,

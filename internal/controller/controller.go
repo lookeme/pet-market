@@ -55,6 +55,7 @@ func (s *Controller) GetBalance(w http.ResponseWriter, r *http.Request) {
 	userID := security.GetUserID(token)
 	balance, err := s.BalanceService.GetBalance(ctx, userID)
 	if err != nil {
+		s.log.Log.Error(err.Error())
 		s.writeResponse(w, r, http.StatusInternalServerError, nil)
 	} else {
 		s.writeResponse(w, r, http.StatusOK, balance)

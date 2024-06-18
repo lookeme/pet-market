@@ -36,10 +36,12 @@ func (i *OrderServiceIml) CreateOrder(ctx context.Context, orderNum string, user
 			return getError
 		}
 		orderToSave := models.Order{
-			Accrual: order.Accrual,
 			OrderID: order.Order,
 			Status:  order.Status,
 			UserID:  userID,
+		}
+		if order.Accrual != nil {
+			orderToSave.Accrual = order.Accrual
 		}
 		return i.orderRepo.Save(ctx, orderToSave, userID)
 	} else if existedOrder.UserID == userID {

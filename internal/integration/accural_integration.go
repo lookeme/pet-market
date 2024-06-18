@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"pet-market/internal/logger"
+	"pet-market/internal/models"
 	"time"
 
 	"go.uber.org/zap"
@@ -31,6 +32,7 @@ func New(host string, log *logger.Logger, timeout time.Duration) *AccuralIntegra
 func (a *AccuralIntegration) GetOrder(orderNumber string) (*OrderAccural, error) {
 	a.log.Log.Info("create request to accural.", zap.String("orderNum", orderNumber))
 	req, err := http.NewRequest(http.MethodGet, a.host+url+orderNumber, nil)
+	req.Header.Set("Content-Length", "0")
 	if err != nil {
 		a.log.Log.Error(err.Error())
 		return nil, err
@@ -46,6 +48,12 @@ func (a *AccuralIntegration) GetOrder(orderNumber string) (*OrderAccural, error)
 		zap.String("status", res.Status),
 		zap.Int("status", res.StatusCode),
 	)
+	order := OrderAccural{}
+	if res.StatusCode != http.StatusOK {
+		order.Order = orderNumber
+		order.Status = models.INVALID
+		return &order, nil
+	}
 	if res.Body != nil {
 		defer res.Body.Close()
 	}
@@ -54,22 +62,17 @@ func (a *AccuralIntegration) GetOrder(orderNumber string) (*OrderAccural, error)
 		a.log.Log.Error(readErr.Error())
 		return nil, readErr
 	}
-	order := OrderAccural{}
 	a.log.Log.Info("accural response", zap.String("body", string(body)))
 	jsonErr := json.Unmarshal(body, &order)
 	if jsonErr != nil {
 		a.log.Log.Error(jsonErr.Error())
 		return nil, jsonErr
 	}
-	a.log.Log.Info("return order",
-		zap.String("order", order.Order),
-		zap.String("status", order.Status),
-		zap.Float32("accural", order.Accrual))
 	return &order, nil
 }
 
 type OrderAccural struct {
-	Order   string  `json:"order"`
-	Status  string  `json:"status"`
-	Accrual float32 `json:"accrual"`
+	Order   string   `json:"order"`
+	Status  string   `json:"status"`
+	Accrual *float32 `json:"accrual"`
 }

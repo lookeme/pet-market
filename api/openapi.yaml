@@ -116,7 +116,6 @@ components:
       required:
         - number
         - status
-        - accrual
         - uploaded_at
       properties:
         number:

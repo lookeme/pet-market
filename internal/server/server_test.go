@@ -138,7 +138,7 @@ func TestShop(t *testing.T) {
 			Header:     make(http.Header),
 		}
 	})
-	accural := integration.AccuralIntegration{
+	accural := integration.AccrualClient{
 		Client: client,
 		Log:    zlog,
 	}
@@ -167,7 +167,8 @@ func TestShop(t *testing.T) {
 		balance := api.Balance{}
 		jsonErr := json.Unmarshal(body, &balance)
 		require.NoError(t, jsonErr)
-		assert.Equal(t, balance.Current, currenBalance)
+		checkBalance := currenBalance - withdrawnBalance
+		assert.Equal(t, balance.Current, checkBalance)
 		assert.Equal(t, balance.Withdrawn, withdrawnBalance)
 		err := res.Body.Close()
 		require.NoError(t, err)

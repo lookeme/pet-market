@@ -13,14 +13,14 @@ import (
 
 var url = "/api/orders/"
 
-type AccuralIntegration struct {
+type AccrualClient struct {
 	host   string
 	Client *http.Client
 	Log    logger.Logger
 }
 
-func New(host string, log *logger.Logger, timeout time.Duration) *AccuralIntegration {
-	return &AccuralIntegration{
+func New(host string, log *logger.Logger, timeout time.Duration) *AccrualClient {
+	return &AccrualClient{
 		host: host,
 		Client: &http.Client{
 			Timeout: timeout,
@@ -29,7 +29,7 @@ func New(host string, log *logger.Logger, timeout time.Duration) *AccuralIntegra
 	}
 }
 
-func (a *AccuralIntegration) GetOrder(orderNumber string) (*OrderAccural, error) {
+func (a *AccrualClient) GetOrder(orderNumber string) (*OrderAccural, error) {
 	a.Log.Log.Info("create request to accural.", zap.String("orderNum", orderNumber))
 	req, err := http.NewRequest(http.MethodGet, a.host+url+orderNumber, nil)
 	req.Header.Set("Content-Length", "0")

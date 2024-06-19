@@ -20,17 +20,17 @@ const bearer = "Bearer "
 
 type Controller struct {
 	Authorization  security.Authorization
-	UserService    service.UserService
-	BalanceService service.BalanceService
-	OrderService   service.OrderService
+	UserService    service.IUserService
+	BalanceService service.IBalanceService
+	OrderService   service.IOrderService
 	log            logger.Logger
 }
 
 func NewController(
 	auth security.Authorization,
-	usrService service.UserService,
-	orderService service.OrderService,
-	balanceService service.BalanceService,
+	usrService service.IUserService,
+	orderService service.IOrderService,
+	balanceService service.IBalanceService,
 	log *logger.Logger,
 ) *Controller {
 	return &Controller{

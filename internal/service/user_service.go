@@ -10,21 +10,21 @@ import (
 	"go.uber.org/zap"
 )
 
-type UsrService struct {
-	userRepository repository.UserRepository
+type UserService struct {
+	userRepository repository.IUserRepository
 	auth           security.Authorization
 	Log            *logger.Logger
 }
 
-func NewUserService(userRepository repository.UserRepository, auth security.Authorization, log *logger.Logger) *UsrService {
-	return &UsrService{
+func NewUserService(userRepository repository.IUserRepository, auth security.Authorization, log *logger.Logger) *UserService {
+	return &UserService{
 		userRepository,
 		auth,
 		log,
 	}
 }
 
-func (s *UsrService) CreateUser(ctx context.Context, usr api.User) (int, error) {
+func (s *UserService) CreateUser(ctx context.Context, usr api.User) (int, error) {
 	hash, err := security.HashPassword(usr.Password)
 	if err != nil {
 		return 0, err
@@ -37,7 +37,7 @@ func (s *UsrService) CreateUser(ctx context.Context, usr api.User) (int, error) 
 	return ID, nil
 }
 
-func (s *UsrService) GetUserByName(ctx context.Context, userName string) (*api.User, error) {
+func (s *UserService) GetUserByName(ctx context.Context, userName string) (*api.User, error) {
 	usr, err := s.userRepository.GetUserByLogin(ctx, userName)
 	return &usr, err
 }

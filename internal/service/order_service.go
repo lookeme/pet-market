@@ -13,19 +13,19 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-type OrderServiceIml struct {
-	accural   integration.AccuralIntegration
-	orderRepo repository.OrderRepository
+type OrderService struct {
+	accural   integration.AccrualClient
+	orderRepo repository.IOrderRepository
 }
 
-func NewOrderService(accural *integration.AccuralIntegration,
-	orderRepo repository.OrderRepository) *OrderServiceIml {
-	return &OrderServiceIml{
+func NewOrderService(accural *integration.AccrualClient,
+	orderRepo repository.IOrderRepository) *OrderService {
+	return &OrderService{
 		accural:   *accural,
 		orderRepo: orderRepo,
 	}
 }
-func (i *OrderServiceIml) CreateOrder(ctx context.Context, orderNum string, userID int) error {
+func (i *OrderService) CreateOrder(ctx context.Context, orderNum string, userID int) error {
 	if !utils.VerifyLuhn(orderNum) {
 		return utils.ErrInvalidOrderNum
 	}
@@ -51,7 +51,7 @@ func (i *OrderServiceIml) CreateOrder(ctx context.Context, orderNum string, user
 	}
 }
 
-func (i *OrderServiceIml) GetUserOrders(ctx context.Context, userID int) ([]api.OrderResponse, error) {
+func (i *OrderService) GetUserOrders(ctx context.Context, userID int) ([]api.OrderResponse, error) {
 	var result []api.OrderResponse
 	orders, err := i.orderRepo.GetAll(ctx, userID)
 	if err != nil {
@@ -69,7 +69,7 @@ func (i *OrderServiceIml) GetUserOrders(ctx context.Context, userID int) ([]api.
 	return result, nil
 }
 
-func (i *OrderServiceIml) GetOrder(ctx context.Context, orderNum string) (api.OrderResponse, error) {
+func (i *OrderService) GetOrder(ctx context.Context, orderNum string) (api.OrderResponse, error) {
 	order, err := i.orderRepo.GetByOrderNumber(ctx, orderNum)
 	if err != nil {
 		return api.OrderResponse{}, err

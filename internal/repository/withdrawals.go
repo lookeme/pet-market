@@ -9,18 +9,18 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-type WithdrawRepositoryImpl struct {
+type WithdrawRepository struct {
 	pg *Postgres
 }
 
-func NewWithdrawRepository(pg *Postgres) *WithdrawRepositoryImpl {
-	return &WithdrawRepositoryImpl{
+func NewWithdrawRepository(pg *Postgres) *WithdrawRepository {
+	return &WithdrawRepository{
 		pg,
 	}
 }
 
-func (w *WithdrawRepositoryImpl) GetAllByUserID(ctx context.Context, userID int) ([]models.Withdraw, error) {
-	rows, err := w.pg.СonPool.Query(ctx, "SELECT order_num, processed_at, sum, user_id FROM withdrawals WHERE user_id = $1", userID)
+func (w *WithdrawRepository) GetAllByUserID(ctx context.Context, userID int) ([]models.Withdraw, error) {
+	rows, err := w.pg.ConPool.Query(ctx, "SELECT order_num, processed_at, sum, user_id FROM withdrawals WHERE user_id = $1", userID)
 	if err != nil {
 		return []models.Withdraw{}, nil
 	}
@@ -32,8 +32,8 @@ func (w *WithdrawRepositoryImpl) GetAllByUserID(ctx context.Context, userID int)
 	return result, nil
 }
 
-func (w *WithdrawRepositoryImpl) Save(ctx context.Context, orderNum string, sum float32, userID int) error {
-	tx, err := w.pg.СonPool.BeginTx(ctx, pgx.TxOptions{})
+func (w *WithdrawRepository) Save(ctx context.Context, orderNum string, sum float32, userID int) error {
+	tx, err := w.pg.ConPool.BeginTx(ctx, pgx.TxOptions{})
 	defer func() {
 		if err != nil {
 			tx.Rollback(ctx)

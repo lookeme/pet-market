@@ -8,20 +8,20 @@ import (
 	"time"
 )
 
-type BalanceServiceIml struct {
-	balanceRepo  repository.BalanceRepository
-	withdrawRepo repository.WithdrawalsRepository
+type BalanceService struct {
+	balanceRepo  repository.IBalanceRepository
+	withdrawRepo repository.IWithdrawalsRepository
 }
 
-func NewBalanceService(balanceRepo repository.BalanceRepository,
-	withdrawRepo repository.WithdrawalsRepository) *BalanceServiceIml {
-	return &BalanceServiceIml{
+func NewBalanceService(balanceRepo repository.IBalanceRepository,
+	withdrawRepo repository.IWithdrawalsRepository) *BalanceService {
+	return &BalanceService{
 		balanceRepo:  balanceRepo,
 		withdrawRepo: withdrawRepo,
 	}
 }
 
-func (b *BalanceServiceIml) GetBalance(ctx context.Context, userID int) (api.Balance, error) {
+func (b *BalanceService) GetBalance(ctx context.Context, userID int) (api.Balance, error) {
 	balance, err := b.balanceRepo.GetBalance(ctx, userID)
 	if err != nil {
 		return api.Balance{}, err
@@ -30,13 +30,13 @@ func (b *BalanceServiceIml) GetBalance(ctx context.Context, userID int) (api.Bal
 	return balance, nil
 }
 
-func (b *BalanceServiceIml) AddWithdraw(ctx context.Context, userID int, withdraw api.RequestWithdraw) error {
+func (b *BalanceService) AddWithdraw(ctx context.Context, userID int, withdraw api.RequestWithdraw) error {
 	if !utils.VerifyLuhn(withdraw.Order) {
 		return utils.ErrInvalidOrderNum
 	}
 	return b.withdrawRepo.Save(ctx, withdraw.Order, withdraw.Sum, userID)
 }
-func (b *BalanceServiceIml) GetAllWithdraws(ctx context.Context, userID int) ([]api.ResponseWithdraw, error) {
+func (b *BalanceService) GetAllWithdraws(ctx context.Context, userID int) ([]api.ResponseWithdraw, error) {
 	var result []api.ResponseWithdraw
 	withdrawals, err := b.withdrawRepo.GetAllByUserID(ctx, userID)
 	if err != nil {

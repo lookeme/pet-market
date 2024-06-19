@@ -32,7 +32,7 @@ func NewHTTPServer(config *configuration.Config) *HTTPServer {
 	}
 }
 
-func (h *HTTPServer) Start() {
+func (h *HTTPServer) Start() error {
 	ctx := context.Background()
 	log, err := logger.CreateLogger(h.config.Logger)
 	if err != nil {
@@ -78,5 +78,5 @@ func (h *HTTPServer) Start() {
 		Addr:    h.config.Network.ServerAddress,
 	}
 	log.Log.Info("server started on ", zap.String("host", s.Addr))
-	log.Log.Fatal(s.ListenAndServe().Error())
+	return s.ListenAndServe()
 }
